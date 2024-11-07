@@ -1,0 +1,43 @@
+name: deploy
+
+on:
+  pull_request_target:
+    branches: [main]
+    types: [opened, closed]
+
+jobs:
+  deploy:
+    if: github.event.pull_request.merged
+    runs-on: ubuntu-latest
+    environment: development
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Copy Environment Configuration
+        env:
+          ENV: ${{ secrets.ENV }}
+        run: |
+          echo "$ENV" > compose/.env
+
+      - name: Deploy with Docker Compose
+        env:
+          REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
+          REMOTE_USER: ${{ secrets.REMOTE_USER }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY_DEV" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -p $SSH_PORT $REMOTE_HOST >> ~/.ssh/known_hosts
+          export DOCKER_HOST="ssh://$REMOTE_USER@$REMOTE_HOST:$SSH_PORT"
+          export DOCKER_BUILDKIT=1
+
+          docker ps -a
+          docker compose -f compose/docker-compose.yml down
+          docker compose -f compose/docker-compose.yml up -d --build
+          docker image prune -f  # clean up none image after built
