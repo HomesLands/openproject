@@ -20,10 +20,8 @@ jobs:
       - name: Copy Environment Configuration
         env:
           ENV: ${{ secrets.ENV }}
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: |
           echo "$ENV" > compose/.env
-          echo "SSH_PRIVATE_KEY exists: ${SSH_PRIVATE_KEY:-'Not Set'}"
 
       - name: Deploy with Docker Compose
         env:
@@ -33,8 +31,7 @@ jobs:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: |
           mkdir -p ~/.ssh
-          # echo -e "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
-          echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
+          echo -e "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -p $SSH_PORT $REMOTE_HOST >> ~/.ssh/known_hosts
           export DOCKER_HOST="ssh://$REMOTE_USER@$REMOTE_HOST:$SSH_PORT"
@@ -42,5 +39,5 @@ jobs:
 
           docker ps -a
           docker compose -f compose/docker-compose.yml down
-          # docker compose -f compose/docker-compose.yml up -d --build
+          docker compose -f compose/docker-compose.yml up -d --build
           docker image prune -f  # clean up none image after built
