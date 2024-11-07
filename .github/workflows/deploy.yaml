@@ -23,8 +23,7 @@ jobs:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: |
           echo "$ENV" > compose/.env
-          echo "$SSH_PRIVATE_KEY" > compose/.env.local
-          cat compose/.env.local
+          echo "SSH_PRIVATE_KEY exists: ${SSH_PRIVATE_KEY:-'Not Set'}"
 
       - name: Deploy with Docker Compose
         env:
