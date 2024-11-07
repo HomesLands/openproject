@@ -3,7 +3,7 @@ name: deploy
 on:
   pull_request_target:
     branches: [main]
-    types: [opened, closed]
+    types: [closed]
 
 jobs:
   deploy:
