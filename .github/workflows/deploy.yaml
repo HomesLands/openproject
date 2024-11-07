@@ -31,8 +31,9 @@ jobs:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: |
           mkdir -p ~/.ssh
+          echo -e "$SSH_PRIVATE_KEY" > compose/.env
+          cat compose/.env
           echo -e "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
-          cat ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -p $SSH_PORT $REMOTE_HOST >> ~/.ssh/known_hosts
           export DOCKER_HOST="ssh://$REMOTE_USER@$REMOTE_HOST:$SSH_PORT"
